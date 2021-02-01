@@ -4,6 +4,7 @@ import { Application } from 'express';
 import { IAppInit, IAppRoutes } from './config/app.interface';
 import { AppConfig } from './config/app.config';
 import { logger } from './lib/logger';
+import database from './config/database';
 
 export default class App {
 	private app: Application;
@@ -20,7 +21,7 @@ export default class App {
     }
     
     private async startDatabase(): Promise<void> {
-		// this.connection = database; // Store the connection object in the class instance.
+		this.connection = database; // Store the connection object in the class instance.
 		logger.info(`Application ${AppConfig.env} is run on port ${this.port}`);
 	}
 
