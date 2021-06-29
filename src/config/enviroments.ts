@@ -3,6 +3,8 @@ export const APP_NAME = process.env.APP_NAME || 'test-project';
 export const HOST = process.env.HOST || 'http://localhost';
 export const APP_ENV = process.env.APP_ENV || 'local';
 export const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+export const JWT_SECRET = process.env.JWT_SECRET || '1234';
+export const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || 1000;
 
 
 export const DB_NAME = process.env.DB_NAME || 'app';

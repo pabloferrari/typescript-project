@@ -34,4 +34,5 @@ export interface IAppRoutes {
 	name: string;
 	routes: any[];
 	prefix?: string;
+    auth: boolean;
 }

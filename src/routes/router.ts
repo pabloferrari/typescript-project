@@ -1,19 +1,22 @@
 import { IAppRoutes } from '../config/app.interface';
 
+import { AuthRoutes } from './auth.routes';
 import { AppRoutes } from './app.routes';
-import { UserRoutes } from './user.routes';
+import { jwtValidate } from '../middlewares/jwt.middleware';
 
 export const AppRouter: IAppRoutes[] = [
 	{
-		name: 'api',
+		name: 'auth',
 		routes: [
-			new AppRoutes('/api')
+			new AuthRoutes('/auth')
 		],
+		auth: false
 	},
 	{
-		name: 'user',
+		name: 'api',
 		routes: [
-			new UserRoutes('/users')
+			new AppRoutes('/')
 		],
+		auth: true
 	}
 ];

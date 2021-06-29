@@ -12,10 +12,7 @@ export class AppRoutes extends Routes {
 	 * @memberof AppRoutes
 	 */
 	public routes(): void {
-		// console.log('FLAG',this, this.path, this.router);
-        this.router.get(`${this.path}/`, HomeController.index);
-		// this.router.get(`${this.path}/`, PaymentController.getPayments);
-		// this.router.get(`${this.path}/create`, PaymentController.createPayment);
+		this.router.get(`${this.path}/`, HomeController.index);
 		
     }
 }
