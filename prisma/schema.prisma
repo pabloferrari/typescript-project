@@ -1,0 +1,1558 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model accidentes {
+  id                   Int                 @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente           Int                 @db.UnsignedInt
+  id_legajo            Int                 @db.UnsignedInt
+  id_turno             Int                 @db.UnsignedInt
+  id_tipo_de_accidente Int                 @db.UnsignedInt
+  id_parte_afectada    Int                 @db.UnsignedInt
+  fecha_accidente      DateTime?           @db.Date
+  hora_accidente       DateTime?           @db.Time(0)
+  siniestro_art        String?             @db.VarChar(16)
+  alta_medica          DateTime?           @db.Date
+  clase_de_accidente   String              @db.Char(1)
+  informe              String?             @db.VarChar(1024)
+  observaciones        String?             @db.VarChar(512)
+  clientes             clientes            @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_accidentes-clientes")
+  legajos              legajos             @relation(fields: [id_legajo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_accidentes-legajos")
+  partes_afectadas     partes_afectadas    @relation(fields: [id_parte_afectada], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_accidentes-partes_afectadas")
+  tipos_de_accidentes  tipos_de_accidentes @relation(fields: [id_tipo_de_accidente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_accidentes-tipos_de_accidentes")
+  turnos               turnos              @relation(fields: [id_turno], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_accidentes-turnos")
+
+  @@index([id_cliente], map: "IDX_accidentes-id_clientes")
+  @@index([id_legajo], map: "IDX_accidentes-legajos")
+  @@index([id_parte_afectada], map: "IDX_accidentes-partes_afectadas")
+  @@index([id_tipo_de_accidente], map: "IDX_accidentes-tipos_de_accidentes")
+  @@index([id_turno], map: "IDX_accidentes-turnos")
+}
+
+model actividades {
+  id                  Int                   @id @default(autoincrement()) @db.UnsignedInt
+  descripcion         String                @db.VarChar(256)
+  id_establecimiento  Int                   @db.UnsignedInt
+  riesgo_ergonomico   Int                   @default(0) @db.UnsignedSmallInt
+  establecimientos    establecimientos      @relation(fields: [id_establecimiento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_actividades-id_establecimiento")
+  actividades_esop    actividades_esop[]
+  puestos_actividades puestos_actividades[]
+  riesgos_actividades riesgos_actividades[]
+
+  @@index([id_establecimiento], map: "IDX_actividades-id_establecimiento")
+}
+
+model actividades_esop {
+  id           Int         @id @default(autoincrement()) @db.UnsignedInt
+  id_actividad Int         @db.UnsignedInt
+  id_esop      Int         @db.UnsignedInt
+  actividades  actividades @relation(fields: [id_actividad], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_actividades_esop-actividades")
+  esop         esop        @relation(fields: [id_esop], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_actividades_esop-esop")
+
+  @@index([id_actividad], map: "IDX_actividades_esop-id_actividad")
+  @@index([id_esop], map: "IDX_actividades_esop-id_esop")
+}
+
+model administradores {
+  id             Int     @id @default(autoincrement()) @db.UnsignedInt
+  nombre_usuario String  @db.VarChar(128)
+  password       String  @db.VarChar(256)
+  email          String  @db.VarChar(128)
+  nombre         String  @db.VarChar(256)
+  web_session_id String? @db.VarChar(1000)
+}
+
+model agentes {
+  id               Int                @id @default(autoincrement()) @db.UnsignedInt
+  nombre           String             @db.VarChar(64)
+  frecuencia       Int                @db.UnsignedSmallInt
+  id_factor        Int?               @db.UnsignedInt
+  factores         factores?          @relation(fields: [id_factor], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_agentes-factores")
+  agentes_estudios agentes_estudios[]
+  riesgos          riesgos[]
+
+  @@index([id_factor], map: "IDX_agentes-id_factor")
+}
+
+model agentes_estudios {
+  id         Int      @id @default(autoincrement()) @db.UnsignedInt
+  id_agente  Int      @db.UnsignedInt
+  id_estudio Int      @db.UnsignedInt
+  agentes    agentes  @relation(fields: [id_agente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_agentes_estudios-agentes")
+  estudios   estudios @relation(fields: [id_estudio], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_agentes_estudios-estudios")
+
+  @@index([id_agente], map: "IDX_agentes_estudios-id_agente")
+  @@index([id_estudio], map: "IDX_agentes_estudios-id_estudio")
+}
+
+model alertas {
+  id               Int            @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente       Int            @db.UnsignedInt
+  email_destino    String?        @db.VarChar(512)
+  alerta1          Int            @db.UnsignedSmallInt
+  alerta2          Int?           @db.UnsignedSmallInt
+  alerta3          Int?           @db.UnsignedSmallInt
+  id_config_alerta Int            @db.UnsignedInt
+  activa           Int            @db.UnsignedSmallInt
+  clientes         clientes       @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_alertas-clientes")
+  config_alertas   config_alertas @relation(fields: [id_config_alerta], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_alertas-config_alertas")
+
+  @@index([id_cliente], map: "IDX_alertas-id_cliente")
+  @@index([id_config_alerta], map: "IDX_alertas-id_config_alertas")
+}
+
+model anexos {
+  id           Int        @id @default(autoincrement()) @db.UnsignedInt
+  id_normativa Int        @db.UnsignedInt
+  titulo       String     @db.VarChar(256)
+  documento    String?    @db.VarChar(1024)
+  normativas   normativas @relation(fields: [id_normativa], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_anexos-normativas")
+
+  @@index([id_normativa], map: "IDX_anexos-id_normativa")
+}
+
+model anuncios {
+  id          Int     @id @default(autoincrement()) @db.UnsignedInt
+  titulo      String  @db.VarChar(100)
+  descripcion String  @db.VarChar(500)
+  link        String  @db.VarChar(100)
+  imagen      String  @db.VarChar(2000)
+  activo      Boolean
+}
+
+model areas {
+  id                 Int              @id @default(autoincrement()) @db.UnsignedInt
+  id_establecimiento Int              @db.UnsignedInt
+  descripcion        String           @db.VarChar(64)
+  ventilacion_tipo   String           @default("Natural") @db.Char(8)
+  establecimientos   establecimientos @relation(fields: [id_establecimiento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_areas-establecimientos")
+  carga_de_fuego     carga_de_fuego[]
+
+  @@index([id_establecimiento], map: "IDX_areas-id_establecimiento")
+}
+
+model arts {
+  id                  Int       @id @default(autoincrement()) @db.UnsignedInt
+  razon_social        String?   @db.VarChar(64)
+  cuit                String?   @db.VarChar(13)
+  domicilio           String?   @db.VarChar(96)
+  sede_central        String?   @db.VarChar(96)
+  telefono            String?   @db.VarChar(32)
+  telefono_siniestros String?   @db.VarChar(32)
+  telefono_reclamos   String?   @db.VarChar(32)
+  web                 String?   @db.VarChar(96)
+  cuentas             cuentas[]
+  rarep               rarep[]
+}
+
+model autorizados {
+  id                 Int              @id @default(autoincrement()) @db.UnsignedInt
+  id_establecimiento Int              @db.UnsignedInt
+  id_usuario         Int              @db.UnsignedInt
+  establecimientos   establecimientos @relation(fields: [id_establecimiento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_autorizados-establecimientos")
+  usuarios           usuarios         @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_autorizados-usuarios")
+
+  @@index([id_establecimiento], map: "IDX_autorizados-id_establecimiento")
+  @@index([id_usuario], map: "IDX_autorizados-id_usuario")
+}
+
+model capacitaciones {
+  id                                                      Int                   @id @default(autoincrement()) @db.UnsignedInt
+  id_curso                                                Int                   @db.UnsignedInt
+  fecha_capacitacion                                      DateTime?             @db.Date
+  instructor                                              String?               @db.VarChar(64)
+  planilla_asistencia                                     String?               @db.VarChar(1024)
+  id_cuenta                                               Int?                  @db.UnsignedInt
+  cuentas                                                 cuentas?              @relation(fields: [id_cuenta], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_capacitaciones-cuentas")
+  cursos                                                  cursos                @relation(fields: [id_curso], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_capacitaciones-cursos")
+  planilla_asistencia_capacitacionesToplanilla_asistencia planilla_asistencia[]
+
+  @@index([id_cuenta], map: "IDX_capacitaciones-id_cuenta")
+  @@index([id_curso], map: "IDX_capacitaciones-id_curso")
+}
+
+model carga_de_fuego {
+  id               Int                @id @default(autoincrement()) @db.UnsignedInt
+  id_area          Int                @db.UnsignedInt
+  superficie       Int?               @db.UnsignedSmallInt
+  carga_total      Decimal?           @db.Decimal(10, 4)
+  poder_calorico   Decimal?           @db.Decimal(10, 4)
+  formulario       String?            @db.VarChar(1024)
+  evaluacion       DateTime?          @db.Date
+  vencimiento      DateTime?          @db.Date
+  observaciones    String?            @db.VarChar(768)
+  areas            areas              @relation(fields: [id_area], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_carga_de_fuego-areas")
+  carga_materiales carga_materiales[]
+
+  @@index([id_area], map: "IDX_carga_de_fuego-id_area")
+}
+
+model carga_materiales {
+  id                Int            @id @default(autoincrement()) @db.UnsignedInt
+  id_carga_de_fuego Int            @db.UnsignedInt
+  id_materiales     Int            @db.UnsignedInt
+  masa              Decimal        @db.Decimal(10, 4)
+  carga_de_fuego    carga_de_fuego @relation(fields: [id_carga_de_fuego], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_carga_materiales-carga_de_fuego")
+  materiales        materiales     @relation(fields: [id_materiales], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_carga_materiales-materiales")
+
+  @@index([id_carga_de_fuego], map: "IDX_carga_materiales-id_carga_de_fuego")
+  @@index([id_materiales], map: "IDX_carga_materiales-id_materiales")
+}
+
+model cargas {
+  id         Int          @id @default(autoincrement()) @db.UnsignedInt
+  carga      String       @db.Char(24)
+  tipo       String       @db.Char(5)
+  clase      String       @db.Char(5)
+  extintores extintores[]
+}
+
+model clientes {
+  id                  Int                   @id @default(autoincrement()) @db.UnsignedInt
+  id_plan             Int                   @db.UnsignedInt
+  razon_social        String                @db.VarChar(48)
+  cuit                String?               @db.VarChar(13)
+  codigo              String                @db.VarChar(8)
+  direccion           String?               @db.VarChar(128)
+  telefono            String?               @db.VarChar(64)
+  email               String?               @db.VarChar(64)
+  contacto            String?               @db.VarChar(64)
+  activo              Int                   @db.UnsignedSmallInt
+  tipo_cliente        Int                   @db.UnsignedSmallInt
+  depura_alertas      Int?                  @default(3) @db.UnsignedSmallInt
+  system_path         String?               @db.VarChar(512)
+  google_calendar     Boolean
+  email_alertas       Boolean               @default(true)
+  planes              planes                @relation(fields: [id_plan], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_clientes-planes")
+  accidentes          accidentes[]
+  alertas             alertas[]
+  controles           controles[]
+  cuentas             cuentas[]
+  cursos              cursos[]
+  detalle_alertas     detalle_alertas[]
+  elementos           elementos[]
+  elementos_clase     elementos_clase[]
+  equipos_de_medicion equipos_de_medicion[]
+  ergonomia           ergonomia[]
+  establecimientos    establecimientos[]
+  legajos             legajos[]
+  manuales_hys        manuales_hys[]
+  matriz_de_riesgos   matriz_de_riesgos[]
+  mediciones          mediciones[]
+  partes_afectadas    partes_afectadas[]
+  plan_emergencias    plan_emergencias[]
+  planillas_463       planillas_463[]
+  profesionales       profesionales[]
+  rarep               rarep[]
+  riesgos             riesgos[]
+  sesiones            sesiones[]
+  tipos_de_accidentes tipos_de_accidentes[]
+  turnos              turnos[]
+  usuarios            usuarios[]
+
+  @@index([id_plan], map: "IDX_clientes-id_plan")
+}
+
+model comite_mixto_actas {
+  id                 Int              @id @default(autoincrement()) @db.UnsignedInt
+  fecha_convocatoria DateTime         @db.Date
+  convocatoria       String           @db.VarChar(768)
+  fecha_acta         DateTime         @db.Date
+  hora_convocatoria  DateTime?        @db.Time(0)
+  acta               String           @db.VarChar(1024)
+  id_establecimiento Int              @db.UnsignedInt
+  establecimientos   establecimientos @relation(fields: [id_establecimiento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_cma-establecimientos")
+
+  @@index([id_establecimiento], map: "IDX_cma-id_establecimiento")
+}
+
+model comite_mixto_integrantes {
+  id                 Int              @id @default(autoincrement()) @db.UnsignedInt
+  fecha_ingreso      DateTime         @db.Date
+  vto_mandato        DateTime         @db.Date
+  cargo              String           @db.Char(1)
+  apellido           String           @db.VarChar(32)
+  nombre             String           @db.VarChar(32)
+  dni                String?          @db.VarChar(8)
+  email              String?          @db.VarChar(64)
+  observaciones      String?          @db.VarChar(128)
+  id_establecimiento Int              @db.UnsignedInt
+  establecimientos   establecimientos @relation(fields: [id_establecimiento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_cmi-establecimientos")
+
+  @@index([id_establecimiento], map: "IDX_cmi-id_establecimiento")
+}
+
+model config_alertas {
+  id              Int               @id @default(autoincrement()) @db.UnsignedInt
+  entidad         String            @db.VarChar(32)
+  atributo        String            @db.VarChar(32)
+  mensaje         String            @db.VarChar(512)
+  modelo          String            @db.VarChar(32)
+  agrupa          Int               @default(0) @db.UnsignedSmallInt
+  rotulo          String            @db.VarChar(32)
+  visible         Boolean?          @default(true)
+  alertas         alertas[]
+  detalle_alertas detalle_alertas[]
+}
+
+model configuraciones {
+  codigo String @id @db.VarChar(128)
+  valor  String @db.VarChar(1536)
+}
+
+model consecuencias {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  descripcion String?   @db.VarChar(256)
+  valor       Decimal?  @db.Decimal(10, 4)
+  riesgos     riesgos[]
+}
+
+model consultas {
+  id         Int      @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente Int      @db.UnsignedInt
+  id_usuario Int      @db.UnsignedInt
+  nombre     String   @db.VarChar(200)
+  email      String   @db.VarChar(200)
+  mensaje    String   @db.VarChar(1000)
+  fecha      DateTime @db.Date
+  fuente     String   @db.VarChar(50)
+  telefono   String?  @db.VarChar(50)
+  visto      Boolean?
+}
+
+model controles {
+  id                    Int                @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente            Int                @db.UnsignedInt
+  id_tipo_de_control    Int                @db.UnsignedInt
+  id_proveedor          Int?               @db.UnsignedInt
+  fecha_control         DateTime           @db.Date
+  informe               String?            @db.VarChar(1024)
+  fecha_proximo_control DateTime           @db.Date
+  observaciones         String?            @db.VarChar(896)
+  clientes              clientes           @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_controles-clientes")
+  proveedores           proveedores?       @relation(fields: [id_proveedor], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_controles-proveedores")
+  tipos_de_controles    tipos_de_controles @relation(fields: [id_tipo_de_control], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_controles-tipos_de_controles")
+
+  @@index([id_cliente], map: "IDX_controles-id_cliente")
+  @@index([id_proveedor], map: "IDX_controles-id_proveedor")
+  @@index([id_tipo_de_control], map: "IDX_controles-id_tipo_de_control")
+}
+
+model cuentas {
+  id                        Int                         @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente                Int                         @db.UnsignedInt
+  id_art                    Int                         @db.UnsignedInt
+  razon_social              String                      @db.VarChar(48)
+  cuit                      String?                     @db.VarChar(13)
+  contacto                  String?                     @db.VarChar(64)
+  email                     String?                     @db.VarChar(64)
+  telefono                  String?                     @db.VarChar(64)
+  direccion                 String?                     @db.VarChar(128)
+  activa                    Int                         @db.SmallInt
+  vto_contrato_art          DateTime?                   @db.Date
+  numero_contrato_art       String?                     @db.VarChar(128)
+  arts                      arts                        @relation(fields: [id_art], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_cuentas-arts")
+  clientes                  clientes                    @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_cuentas-clientes")
+  capacitaciones            capacitaciones[]
+  establecimientos          establecimientos[]
+  estadistica_de_accidentes estadistica_de_accidentes[]
+  legajos                   legajos[]
+
+  @@index([id_art], map: "IDX_cuentas-id_art")
+  @@index([id_cliente], map: "IDX_cuentas-id_cliente")
+}
+
+model cursos {
+  id              Int              @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente      Int?             @db.UnsignedInt
+  renovacion      Int?             @db.UnsignedSmallInt
+  titulo          String           @db.VarChar(128)
+  temario         String?          @db.VarChar(1024)
+  certificado     String?          @db.VarChar(1024)
+  material        String?          @db.VarChar(1024)
+  temario_firmado String?          @db.VarChar(1024)
+  horas           Int?             @db.UnsignedSmallInt
+  cota_aprobacion Int?             @db.UnsignedSmallInt
+  resol905        Int              @db.UnsignedSmallInt
+  es_induccion    Int              @db.UnsignedSmallInt
+  cuestionario    String?          @db.VarChar(1024)
+  mes_inicial     Int?             @db.UnsignedSmallInt
+  mes_final       Int?             @db.UnsignedSmallInt
+  clientes        clientes?        @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_cursos-clientes")
+  capacitaciones  capacitaciones[]
+  riesgos_cursos  riesgos_cursos[]
+
+  @@index([id_cliente], map: "IDX_cursos-id_cliente")
+}
+
+model datos_ambientales {
+  id                  Int                @id @default(autoincrement()) @db.UnsignedInt
+  id_detalle_medicion Int                @db.UnsignedInt
+  temperatura         Decimal?           @db.Decimal(10, 4)
+  cielo               String?            @db.Char(1)
+  viento_direccion    String?            @db.Char(1)
+  viento_velocidad    Decimal?           @db.Decimal(10, 4)
+  presion             Decimal?           @db.Decimal(10, 4)
+  detalle_mediciones  detalle_mediciones @relation(fields: [id_detalle_medicion], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ambientales-detalle_mediciones")
+
+  @@index([id_detalle_medicion], map: "IDX_ambientales-id_detalle_medicion")
+}
+
+model detalle_alertas {
+  id                 Int              @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente         Int              @db.UnsignedInt
+  id_establecimiento Int              @db.UnsignedInt
+  id_config_alerta   Int              @db.UnsignedInt
+  mensaje            String           @db.VarChar(512)
+  mensaje_fecha      DateTime         @db.Date
+  ruta_evento        String           @db.VarChar(512)
+  fecha_evento       DateTime         @db.Date
+  clientes           clientes         @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_alertas-clientes")
+  config_alertas     config_alertas   @relation(fields: [id_config_alerta], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_alertas-config_alertas")
+  establecimientos   establecimientos @relation(fields: [id_establecimiento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_alertas-establecimientos")
+
+  @@index([id_cliente], map: "IDX_detalle_alertas-id_cliente")
+  @@index([id_config_alerta], map: "IDX_detalle_alertas-id_config_alertas")
+  @@index([id_establecimiento], map: "IDX_detalle_alertas-id_establecimiento")
+}
+
+model detalle_epp {
+  id             Int              @id @default(autoincrement()) @db.UnsignedInt
+  id_legajo      Int              @db.UnsignedInt
+  fecha_entrega  DateTime?        @db.Date
+  documentacion  String?          @db.VarChar(1024)
+  legajos        legajos          @relation(fields: [id_legajo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_epp-legajos")
+  epp_entregados epp_entregados[]
+
+  @@index([id_legajo], map: "IDX_detalle_epp-id_legajo")
+}
+
+model detalle_ergonomia {
+  id                      Int           @id @default(autoincrement()) @db.UnsignedInt
+  id_ergonomia            Int           @db.UnsignedInt
+  id_planillas_886        Int           @db.UnsignedInt
+  evaluacion              String        @db.VarChar(1024)
+  fecha_planilla          DateTime?     @db.Date
+  id_actividad            Int           @db.UnsignedInt
+  grado_riesgo_ergonomico String?       @db.VarChar(12)
+  ergonomia               ergonomia     @relation(fields: [id_ergonomia], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_ergonomia-ergonomia")
+  planillas_886           planillas_886 @relation(fields: [id_planillas_886], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_ergonomia-planillas_886")
+
+  @@index([id_actividad], map: "IDX_detalle_ergonomia-id_actividad")
+  @@index([id_ergonomia], map: "IDX_detalle_ergonomia-id_ergonomia")
+  @@index([id_planillas_886], map: "IDX_detalle_ergonomia-id_planillas_886")
+}
+
+model detalle_matriz {
+  id                Int               @id @default(autoincrement()) @db.UnsignedInt
+  id_matriz         Int               @db.UnsignedInt
+  id_puesto         Int               @db.UnsignedInt
+  riesgos           String?           @db.VarChar(1024)
+  cursos            String?           @db.VarChar(4096)
+  mediciones        String?           @db.VarChar(1024)
+  epps              String?           @db.VarChar(1024)
+  medidas           String?           @db.VarChar(4096)
+  agentes           String?           @db.VarChar(1024)
+  condiciones       String?           @db.VarChar(1024)
+  exposiciones      String?           @db.VarChar(1024)
+  severidades       String?           @db.VarChar(1024)
+  probabilidades    String?           @db.VarChar(1024)
+  frecuencias       String?           @db.VarChar(1024)
+  trabajadores      String?           @db.VarChar(1024)
+  actividades       String?           @db.VarChar(1024)
+  matriz_de_riesgos matriz_de_riesgos @relation(fields: [id_matriz], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_matriz-matriz_de_riesgos")
+  puestos           puestos           @relation(fields: [id_puesto], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_matriz-puestos")
+
+  @@index([id_matriz], map: "IDX_detalle_matriz-id_matriz")
+  @@index([id_puesto], map: "IDX_detalle_matriz-id_puesto")
+}
+
+model detalle_mediciones {
+  id                    Int                   @id @default(autoincrement()) @db.UnsignedInt
+  id_establecimiento    Int                   @db.UnsignedInt
+  id_medicion           Int                   @db.UnsignedInt
+  id_equipo_de_medicion Int?                  @db.UnsignedInt
+  id_profesional        Int?                  @db.UnsignedInt
+  fecha_relevamiento    DateTime              @db.Date
+  fecha_informe         DateTime?             @db.Date
+  informe               String?               @db.VarChar(1024)
+  plano_de_planta       String?               @db.VarChar(1024)
+  observaciones         String?               @db.VarChar(2048)
+  equipos_de_medicion   equipos_de_medicion?  @relation(fields: [id_equipo_de_medicion], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_mediciones-equipos")
+  establecimientos      establecimientos      @relation(fields: [id_establecimiento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_mediciones-establecimientos")
+  mediciones            mediciones            @relation(fields: [id_medicion], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_mediciones-mediciones")
+  profesionales         profesionales?        @relation(fields: [id_profesional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_mediciones-profesionales")
+  datos_ambientales     datos_ambientales[]
+  valores_de_medicion   valores_de_medicion[]
+
+  @@index([id_equipo_de_medicion], map: "IDX_detalle_mediciones-id_equipo")
+  @@index([id_establecimiento], map: "IDX_detalle_mediciones-id_establecimiento")
+  @@index([id_medicion], map: "IDX_detalle_mediciones-id_medicion")
+  @@index([id_profesional], map: "IDX_detalle_mediciones-id_profesional")
+}
+
+model detalle_obras {
+  id           Int         @id @default(autoincrement()) @db.UnsignedInt
+  id_obra      Int         @db.UnsignedInt
+  id_requisito Int?        @db.UnsignedInt
+  obras        obras       @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_obras-obras")
+  requisitos   requisitos? @relation(fields: [id_requisito], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_obras-requisitos")
+
+  @@index([id_obra], map: "IDX_detalle_obras-id_obras")
+  @@index([id_requisito], map: "IDX_detalle_obras-id_requisito")
+}
+
+model detalle_rarep {
+  id            Int             @id @default(autoincrement()) @db.UnsignedInt
+  id_rarep      Int             @db.UnsignedInt
+  id_sector     Int             @db.UnsignedInt
+  id_puesto     Int             @db.UnsignedInt
+  id_legajo     Int             @db.UnsignedInt
+  legajos       legajos         @relation(fields: [id_legajo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_rarep-legajos")
+  puestos       puestos         @relation(fields: [id_puesto], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_rarep-puestos")
+  rarep         rarep           @relation(fields: [id_rarep], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_rarep-rarep")
+  sectores      sectores        @relation(fields: [id_sector], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_detalle_rarep-sectores")
+  riesgos_rarep riesgos_rarep[]
+
+  @@index([id_legajo], map: "FK_detalle_rarep-legajos")
+  @@index([id_puesto], map: "FK_detalle_rarep-puestos")
+  @@index([id_rarep], map: "FK_detalle_rarep-rarep")
+  @@index([id_sector], map: "FK_detalle_rarep-sectores")
+}
+
+model distritos {
+  id                   Int                    @id @default(autoincrement()) @db.UnsignedInt
+  nombre               String                 @db.VarChar(64)
+  orden                Int                    @db.UnsignedSmallInt
+  distritos_normativas distritos_normativas[]
+}
+
+model distritos_normativas {
+  id           Int        @id @default(autoincrement()) @db.UnsignedInt
+  id_normativa Int        @db.UnsignedInt
+  id_distrito  Int        @db.UnsignedInt
+  distritos    distritos  @relation(fields: [id_distrito], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_por-distritos")
+  normativas   normativas @relation(fields: [id_normativa], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_por-normativas")
+
+  @@index([id_distrito], map: "IDX_por-id_distrito")
+  @@index([id_normativa], map: "IDX_por-id_normativa")
+}
+
+model elementos {
+  id                Int                 @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente        Int                 @db.UnsignedInt
+  id_elemento_clase Int                 @db.UnsignedInt
+  elemento          String              @db.VarChar(64)
+  vida_util         Int?                @db.UnsignedSmallInt
+  reposicion        Int?                @db.UnsignedSmallInt
+  certificado       String?             @db.VarChar(1024)
+  email_destino     String?             @db.VarChar(512)
+  alerta1           Int?                @db.UnsignedSmallInt
+  alerta2           Int?                @db.UnsignedSmallInt
+  alerta3           Int?                @db.UnsignedSmallInt
+  descartable       Int                 @default(0) @db.UnsignedSmallInt
+  marca             String?             @db.VarChar(64)
+  clientes          clientes            @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_elementos-clientes")
+  elementos_clase   elementos_clase     @relation(fields: [id_elemento_clase], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_elementos-elementos_clase")
+  epp_entregados    epp_entregados[]
+  riesgos_elementos riesgos_elementos[]
+
+  @@index([id_cliente], map: "IDX_elementos-id_cliente")
+  @@index([id_elemento_clase], map: "IDX_elementos-id_elemento_clase")
+}
+
+model elementos_clase {
+  id          Int         @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente  Int         @db.UnsignedInt
+  descripcion String      @db.VarChar(64)
+  clientes    clientes    @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_elementos_clase-clientes")
+  elementos   elementos[]
+
+  @@index([id_cliente], map: "IDX_elementos_clase-id_cliente")
+}
+
+model epp_entregados {
+  id             Int         @id @default(autoincrement()) @db.UnsignedInt
+  id_elemento    Int         @db.UnsignedInt
+  id_detalle_epp Int         @db.UnsignedInt
+  detalle_epp    detalle_epp @relation(fields: [id_detalle_epp], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_epp_entregados-detalle_epp")
+  elementos      elementos   @relation(fields: [id_elemento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_epp_entregados-elementos")
+
+  @@index([id_detalle_epp], map: "IDX_epp_entregados-id_detalle_epp")
+  @@index([id_elemento], map: "IDX_epp_entregados-id_elemento")
+}
+
+model equipos_de_medicion {
+  id                  Int                  @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente          Int                  @db.UnsignedInt
+  id_tipo_de_medicion Int?                 @db.UnsignedInt
+  descripcion         String               @db.VarChar(64)
+  marca               String?              @db.VarChar(64)
+  modelo              String?              @db.VarChar(64)
+  serie               String?              @db.VarChar(64)
+  ultima_calibracion  DateTime             @db.Date
+  certificado         String?              @db.VarChar(1024)
+  observaciones       String?              @db.VarChar(512)
+  proxima_calibracion DateTime?            @db.Date
+  clientes            clientes             @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_equipos-clientes")
+  tipos_de_medicion   tipos_de_medicion?   @relation(fields: [id_tipo_de_medicion], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_equipos-tipos_de_medicion")
+  detalle_mediciones  detalle_mediciones[]
+
+  @@index([id_cliente], map: "IDX_equipos-id_clientes")
+  @@index([id_tipo_de_medicion], map: "IDX_equipos-id_tipo_de_medicion")
+}
+
+model ergonomia {
+  id                Int                 @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente        Int                 @db.UnsignedInt
+  fecha_evaluacion  DateTime?           @db.Date
+  fecha_renovacion  DateTime?           @db.Date
+  id_puesto         Int                 @db.UnsignedInt
+  clientes          clientes            @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ergonomia-clientes")
+  puestos           puestos             @relation(fields: [id_puesto], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ergonomia-puestos")
+  detalle_ergonomia detalle_ergonomia[]
+
+  @@index([id_cliente], map: "IDX_ergonomia-id_cliente")
+  @@index([id_puesto], map: "IDX_ergonomia-id_puesto")
+}
+
+model esop {
+  id               Int                @id @default(autoincrement()) @db.UnsignedInt
+  nombre           String             @db.VarChar(128)
+  codigo           Int                @db.UnsignedInt
+  actividades_esop actividades_esop[]
+}
+
+model establecimientos {
+  id                       Int                        @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente               Int                        @db.UnsignedInt
+  id_cuenta                Int                        @db.UnsignedInt
+  denominacion             String                     @db.VarChar(48)
+  direccion                String?                    @db.VarChar(128)
+  telefono                 String?                    @db.VarChar(64)
+  email                    String?                    @db.VarChar(64)
+  contacto                 String?                    @db.VarChar(64)
+  matriz_renovacion        Int?                       @default(365) @db.UnsignedSmallInt
+  riesgo_actividad         Int?                       @db.UnsignedSmallInt
+  activo                   Int?                       @default(1) @db.UnsignedSmallInt
+  clientes                 clientes                   @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_establecimientos-clientes")
+  cuentas                  cuentas                    @relation(fields: [id_cuenta], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_establecimientos-cuentas")
+  actividades              actividades[]
+  areas                    areas[]
+  autorizados              autorizados[]
+  comite_mixto_actas       comite_mixto_actas[]
+  comite_mixto_integrantes comite_mixto_integrantes[]
+  detalle_alertas          detalle_alertas[]
+  detalle_mediciones       detalle_mediciones[]
+  gestion                  gestion[]
+  informes_carga_de_fuego  informes_carga_de_fuego[]
+  manuales_hys             manuales_hys[]
+  matriz_de_riesgos        matriz_de_riesgos[]
+  plan_emergencias         plan_emergencias[]
+  planillas_463            planillas_463[]
+  puntos_de_medicion       puntos_de_medicion[]
+  sectores                 sectores[]
+  ubicaciones              ubicaciones[]
+
+  @@index([id_cliente], map: "IDX_establecimientos-id_cliente")
+  @@index([id_cuenta], map: "IDX_establecimientos-id_cuenta")
+}
+
+model estadistica_de_accidentes {
+  id                    Int      @id @default(autoincrement()) @db.UnsignedInt
+  id_cuenta             Int      @db.UnsignedInt
+  indice_SRT            Decimal? @db.Decimal(10, 4)
+  anio                  Int?     @db.UnsignedSmallInt
+  mes                   Int?     @db.UnsignedSmallInt
+  cantidad_trabajadores Int?     @db.UnsignedSmallInt
+  horas_trabajadas      BigInt?  @db.UnsignedBigInt
+  cuentas               cuentas  @relation(fields: [id_cuenta], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_estadisticas-cuentas")
+
+  @@index([id_cuenta], map: "IDX_estadisticas-id_cuenta")
+}
+
+model estudios {
+  id               Int                @id @default(autoincrement()) @db.UnsignedInt
+  nombre           String             @db.VarChar(128)
+  agentes_estudios agentes_estudios[]
+}
+
+model exposicion {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  descripcion String?   @db.VarChar(256)
+  valor       Decimal?  @db.Decimal(10, 4)
+  riesgos     riesgos[]
+}
+
+model extintores {
+  id             Int          @id @default(autoincrement()) @db.UnsignedInt
+  id_ubicacion   Int?         @db.UnsignedInt
+  id_carga       Int          @db.UnsignedInt
+  capacidad      Decimal?     @db.Decimal(10, 4)
+  cilindro       String       @db.Char(8)
+  vida_util_vto  DateTime?    @db.Date
+  fabricacion    DateTime?    @db.Date
+  hidraulica_vto DateTime?    @db.Date
+  carga_vto      DateTime?    @db.Date
+  observaciones  String?      @db.VarChar(128)
+  tarjeta_QR     String?      @db.VarChar(512)
+  cargas         cargas       @relation(fields: [id_carga], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_extintores-cargas")
+  ubicaciones    ubicaciones? @relation(fields: [id_ubicacion], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_extintores-ubicaciones")
+
+  @@index([id_carga], map: "IDX_extintores-id_carga")
+  @@index([id_ubicacion], map: "IDX_extintores-id_ubicacion")
+}
+
+model factores {
+  id            Int       @id @default(autoincrement()) @db.UnsignedInt
+  descripcion   String?   @db.VarChar(32)
+  nick          String?   @db.VarChar(8)
+  observaciones String?   @db.VarChar(256)
+  agentes       agentes[]
+  riesgos       riesgos[]
+}
+
+model funciones {
+  id          Int        @id @default(autoincrement()) @db.UnsignedInt
+  descripcion String     @db.VarChar(128)
+  ruta        String     @db.VarChar(500)
+  menu        String     @db.VarChar(10)
+  submenu     String     @db.VarChar(10)
+  orden       Int        @db.UnsignedInt
+  permisos    permisos[]
+}
+
+model gestion {
+  id                 Int              @id @default(autoincrement()) @db.UnsignedInt
+  id_establecimiento Int              @db.UnsignedInt
+  anio               Int              @db.UnsignedSmallInt
+  cerrado            Int              @default(0) @db.UnsignedSmallInt
+  concepto           String           @default("A") @db.VarChar(1)
+  objetivo           Decimal          @default(100.0000) @db.Decimal(10, 4)
+  minimo_aceptado    Decimal          @default(50.0000) @db.Decimal(10, 4)
+  tope_rojo          Decimal          @default(39.0000) @db.Decimal(10, 4)
+  tope_amarillo      Decimal          @default(79.0000) @db.Decimal(10, 4)
+  ultimo_resultado   Decimal          @db.Decimal(10, 4)
+  fecha_revision     DateTime         @db.Date
+  establecimientos   establecimientos @relation(fields: [id_establecimiento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_gestion_establecimientos")
+
+  @@index([id_establecimiento], map: "IDX_gestion-establecimientos")
+}
+
+model google_calendar {
+  id                   Int    @id @default(autoincrement()) @db.UnsignedInt
+  id_google_calendar   String @db.VarChar(256)
+  id_cliente           Int    @db.UnsignedInt
+  id_establecimiento   Int    @db.UnsignedInt
+  google_account_email String @db.VarChar(256)
+  color                Int    @default(0)
+}
+
+model grado_de_peligro {
+  id                   Int      @id @default(autoincrement()) @db.UnsignedInt
+  peligro              String?  @db.VarChar(20)
+  indice_fine_inferior Decimal? @db.Decimal(10, 4)
+  indice_fine_superior Decimal? @db.Decimal(10, 4)
+  codigo               String?  @db.Char(2)
+
+  @@index([indice_fine_inferior], map: "IDX_rango_inferior")
+  @@index([indice_fine_superior], map: "IDX_rango_superior")
+}
+
+model hidrantes {
+  id             Int          @id @default(autoincrement()) @db.UnsignedInt
+  id_ubicacion   Int?         @db.UnsignedInt
+  gabinete       String?      @db.VarChar(32)
+  manguera       Decimal?     @db.Decimal(10, 4)
+  lanza          String?      @db.VarChar(32)
+  hidraulica_vto DateTime?    @db.Date
+  observaciones  String?      @db.VarChar(128)
+  ubicaciones    ubicaciones? @relation(fields: [id_ubicacion], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_hidrantes-ubicaciones")
+
+  @@index([id_ubicacion], map: "IDX_hidrantes-id_ubicacion")
+}
+
+model historial_normativas {
+  id            Int        @id @default(autoincrement()) @db.UnsignedInt
+  titulo        String     @db.VarChar(256)
+  documento     String     @db.VarChar(1024)
+  vigente_desde DateTime   @db.Date
+  vigente_hasta DateTime   @db.Date
+  normativas    normativas @relation(fields: [id], references: [id_historial_normativas], onDelete: NoAction, onUpdate: NoAction, map: "FK_historial_normativas-normativas")
+}
+
+model indicadores {
+  id               Int      @id @default(autoincrement()) @db.UnsignedInt
+  tipo_estadistica String   @db.VarChar(50)
+  datos            String?  @db.VarChar(5000)
+  display          Int?     @default(1) @db.UnsignedSmallInt
+  id_usuario       Int      @db.UnsignedInt
+  usuarios         usuarios @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_indicadores-usuarios")
+
+  @@index([id_usuario], map: "IDX_indicadores-id_usuario")
+}
+
+model informes_carga_de_fuego {
+  id                 Int              @id @default(autoincrement()) @db.UnsignedInt
+  id_establecimiento Int              @db.UnsignedInt
+  fecha_informe      DateTime?        @db.Date
+  notas              String?          @db.VarChar(896)
+  conclusion         String?          @db.VarChar(896)
+  informe            String?          @db.VarChar(1024)
+  establecimientos   establecimientos @relation(fields: [id_establecimiento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_informes-establecimientos")
+
+  @@index([id_establecimiento], map: "IDX_informes-id_establecimiento")
+}
+
+model legajos {
+  id                     Int                    @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente             Int                    @db.UnsignedInt
+  id_cuenta              Int                    @db.UnsignedInt
+  apellido               String                 @db.VarChar(32)
+  nombre                 String                 @db.VarChar(32)
+  email                  String?                @db.VarChar(64)
+  dni                    String?                @db.VarChar(8)
+  nacimiento             DateTime?              @db.Date
+  activo                 Int                    @db.UnsignedSmallInt
+  fecha_ingreso          DateTime?              @db.Date
+  cuil                   String?                @db.VarChar(13)
+  cargo                  String?                @db.VarChar(32)
+  legajo                 String                 @db.VarChar(16)
+  id_puesto_actual       Int                    @db.UnsignedInt
+  id_rol_plan_emergencia Int?                   @db.UnsignedInt
+  ubicacion              String?                @db.VarChar(64)
+  created_at             DateTime               @default(now()) @db.Timestamp(0)
+  created_from           String                 @db.VarChar(64)
+  updated_at             DateTime               @db.DateTime(0)
+  updated_from           String                 @db.VarChar(64)
+  clientes               clientes               @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_legajos-clientes")
+  cuentas                cuentas                @relation(fields: [id_cuenta], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_legajos-cuentas")
+  roles_plan_emergencia  roles_plan_emergencia? @relation(fields: [id_rol_plan_emergencia], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_legajos-roles_plan_emergencia")
+  accidentes             accidentes[]
+  detalle_epp            detalle_epp[]
+  detalle_rarep          detalle_rarep[]
+  planilla_asistencia    planilla_asistencia[]
+  preocupacional         preocupacional[]
+  puestos_legajos        puestos_legajos[]
+
+  @@index([id_cliente], map: "IDX_legajos-id_cliente")
+  @@index([id_cuenta], map: "IDX_legajos-id_cuenta")
+  @@index([id_rol_plan_emergencia], map: "IDX_legajos-id_rol_plan_emergencia")
+}
+
+model manuales_hys {
+  id                 Int              @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente         Int              @db.UnsignedInt
+  id_establecimiento Int              @db.UnsignedInt
+  tipo               String           @db.Char(1)
+  titulo             String           @db.Char(128)
+  fecha_alta         DateTime?        @db.Date
+  documento          String?          @db.VarChar(1024)
+  fecha_renovacion   DateTime?        @db.Date
+  orden              Int              @db.UnsignedSmallInt
+  clientes           clientes         @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_manuales-clientes")
+  establecimientos   establecimientos @relation(fields: [id_establecimiento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_manuales-establecimientos")
+
+  @@index([id_cliente], map: "IDX_manuales-id_cliente")
+  @@index([id_establecimiento], map: "IDX_manuales-id_establecimiento")
+}
+
+model materiales {
+  id                      Int                @id @default(autoincrement()) @db.UnsignedInt
+  orden                   Int                @db.UnsignedSmallInt
+  descripcion             String             @db.VarChar(52)
+  poder_calorico_joules   Decimal            @db.Decimal(10, 4)
+  poder_calorico_calorias Decimal            @db.Decimal(10, 4)
+  clase_de_fuego          String             @default("A") @db.Char(1)
+  carga_materiales        carga_materiales[]
+}
+
+model matriz_de_riesgos {
+  id                                                             Int              @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente                                                     Int              @db.UnsignedInt
+  id_establecimiento                                             Int              @db.UnsignedInt
+  cerrada                                                        Int              @default(0) @db.UnsignedSmallInt
+  fecha_cierre                                                   DateTime?        @db.Date
+  ultima_actualizacion                                           DateTime?        @db.Date
+  profesional_hys                                                Int?             @db.UnsignedInt
+  profesional_st                                                 Int?             @db.UnsignedInt
+  documentacion                                                  String?          @db.VarChar(1024)
+  clientes                                                       clientes         @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_matriz_de_riesgos-clientes")
+  establecimientos                                               establecimientos @relation(fields: [id_establecimiento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_matriz_de_riesgos-establecimientos")
+  profesionales_matriz_de_riesgos_profesional_hysToprofesionales profesionales?   @relation("matriz_de_riesgos_profesional_hysToprofesionales", fields: [profesional_hys], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_matriz_de_riesgos-profesionales02")
+  profesionales_matriz_de_riesgos_profesional_stToprofesionales  profesionales?   @relation("matriz_de_riesgos_profesional_stToprofesionales", fields: [profesional_st], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_matriz_de_riesgos-profesionales01")
+  detalle_matriz                                                 detalle_matriz[]
+
+  @@index([id_cliente], map: "IDX_matriz_de_riesgos-id_cliente")
+  @@index([id_establecimiento], map: "IDX_matriz_de_riesgos-id_establecimiento")
+  @@index([profesional_hys], map: "IDX_matriz_de_riesgos-profesional_hys")
+  @@index([profesional_st], map: "IDX_matriz_de_riesgos-profesional_st")
+}
+
+model mediciones {
+  id                  Int                  @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente          Int                  @db.UnsignedInt
+  id_tipo_de_medicion Int                  @db.UnsignedInt
+  sujeto              String               @default("A") @db.Char(1)
+  descripcion         String               @db.VarChar(64)
+  unidad_medida       String?              @db.VarChar(24)
+  valor_superior      Decimal?             @db.Decimal(10, 4)
+  valor_inferior      Decimal?             @db.Decimal(10, 4)
+  renovacion          Int?                 @db.UnsignedSmallInt
+  clientes            clientes             @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_mediciones-clientes")
+  tipos_de_medicion   tipos_de_medicion    @relation(fields: [id_tipo_de_medicion], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_mediciones-tipos_de_medicion")
+  detalle_mediciones  detalle_mediciones[]
+  riesgos_mediciones  riesgos_mediciones[]
+
+  @@index([id_cliente], map: "IDX_mediciones-id_cliente")
+  @@index([id_tipo_de_medicion], map: "IDX_mediciones-id_tipo_medicion")
+}
+
+model normativas {
+  id                      Int                    @id @default(autoincrement()) @db.UnsignedInt
+  titulo                  String                 @db.VarChar(256)
+  documento               String?                @db.VarChar(1024)
+  vigente                 Int                    @db.UnsignedSmallInt
+  vigente_desde           DateTime               @db.Date
+  id_historial_normativas Int?                   @db.UnsignedInt
+  id_relacionada          Int?                   @db.UnsignedInt
+  normativas              normativas?            @relation("normativasTonormativas_id_relacionada", fields: [id_relacionada], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_normativas-normativas")
+  anexos                  anexos[]
+  distritos_normativas    distritos_normativas[]
+  historial_normativas    historial_normativas?
+  other_normativas        normativas[]           @relation("normativasTonormativas_id_relacionada")
+
+  @@index([id_historial_normativas], map: "IDX_normativas-id_historial")
+  @@index([id_relacionada], map: "IDX_normativas-id_relacionada")
+}
+
+model obras {
+  id            Int             @id @default(autoincrement()) @db.UnsignedInt
+  id_proveedor  Int             @db.UnsignedInt
+  obra          String          @db.VarChar(64)
+  fecha_inicio  DateTime        @db.Date
+  fecha_final   DateTime        @db.Date
+  solicitante   String?         @db.VarChar(256)
+  proveedores   proveedores     @relation(fields: [id_proveedor], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_obras-proveedores")
+  detalle_obras detalle_obras[]
+
+  @@index([id_proveedor], map: "IDX_obras-id_proveedor")
+}
+
+model partes_afectadas {
+  id          Int          @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente  Int          @db.UnsignedInt
+  descripcion String       @db.VarChar(64)
+  clientes    clientes     @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_partes_afectadas-clientes")
+  accidentes  accidentes[]
+
+  @@index([id_cliente], map: "IDX_partes_afectadas-clientes")
+}
+
+model permisos {
+  id         Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_rol     Int       @db.UnsignedInt
+  id_funcion Int       @db.UnsignedInt
+  funciones  funciones @relation(fields: [id_funcion], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_permisos-funciones")
+  roles      roles     @relation(fields: [id_rol], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_permisos-roles")
+
+  @@index([id_funcion], map: "IDX_permisos-id_funcion")
+  @@index([id_rol], map: "IDX_permisos-id_rol")
+}
+
+model plan_emergencias {
+  id                 Int              @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente         Int              @db.UnsignedInt
+  id_establecimiento Int              @db.UnsignedInt
+  manual             String?          @db.VarChar(1024)
+  ultima_revision    DateTime?        @db.Date
+  proxima_revision   DateTime?        @db.Date
+  aprobacion         String?          @db.VarChar(1024)
+  fecha_aprobacion   DateTime?        @db.Date
+  clientes           clientes         @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_emergencias-clientes")
+  establecimientos   establecimientos @relation(fields: [id_establecimiento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_emergencias-establecimientos")
+  planos             planos[]
+  simulacros         simulacros[]
+
+  @@index([id_cliente], map: "IDX_emergencias_id_cliente")
+  @@index([id_establecimiento], map: "IDX_emergencias_id_establecimiento")
+}
+
+model planes {
+  id               Int        @id @default(autoincrement()) @db.UnsignedInt
+  descripcion      String     @db.VarChar(64)
+  establecimientos Int        @db.UnsignedSmallInt
+  cuentas          Int        @db.UnsignedSmallInt
+  modulos          Int        @db.UnsignedSmallInt
+  usuarios         Int        @db.UnsignedSmallInt
+  precio_base      Decimal    @db.Decimal(10, 2)
+  m_ambiente       Int        @db.UnsignedSmallInt
+  m_ergonomia      Int        @db.UnsignedSmallInt
+  m_salud          Int        @db.UnsignedSmallInt
+  m_higiene        Int        @db.UnsignedSmallInt
+  clientes         clientes[]
+}
+
+model planilla_asistencia {
+  id              Int            @id @default(autoincrement()) @db.UnsignedInt
+  id_legajo       Int?           @db.UnsignedInt
+  id_capacitacion Int            @db.UnsignedInt
+  calificacion    Int?           @db.UnsignedSmallInt
+  evaluacion      String?        @db.VarChar(1024)
+  capacitaciones  capacitaciones @relation(fields: [id_capacitacion], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_planilla_asistencia-capacitaciones")
+  legajos         legajos?       @relation(fields: [id_legajo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_planilla_asistencia-legajos")
+
+  @@index([id_capacitacion], map: "IDX_planilla_asistencia-id_capacitacion")
+  @@index([id_legajo], map: "IDX_planilla_asistencia-id_legajo")
+}
+
+model planillas_463 {
+  id                 Int              @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente         Int              @db.UnsignedInt
+  id_establecimiento Int              @db.UnsignedInt
+  fecha_alta         DateTime?        @db.Date
+  documento          String?          @db.VarChar(1024)
+  clientes           clientes         @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_planilla-clientes")
+  establecimientos   establecimientos @relation(fields: [id_establecimiento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_planilla-establecimientos")
+
+  @@index([id_cliente], map: "IDX_planilla-id_cliente")
+  @@index([id_establecimiento], map: "IDX_planilla-id_establecimiento")
+}
+
+model planillas_886 {
+  id                Int                 @id @default(autoincrement()) @db.UnsignedInt
+  denominacion      String              @db.VarChar(96)
+  planilla_codigo   String              @db.Char(2)
+  planilla_modelo   String              @db.VarChar(1024)
+  diagrama          String              @db.VarChar(1024)
+  instructivo       String              @db.VarChar(1024)
+  detalle_ergonomia detalle_ergonomia[]
+}
+
+model planos {
+  id                  Int              @id @default(autoincrement()) @db.UnsignedInt
+  id_plan_emergencias Int              @db.UnsignedInt
+  plano               String?          @db.VarChar(1024)
+  plan_emergencias    plan_emergencias @relation(fields: [id_plan_emergencias], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_planos-plan_emergencias")
+
+  @@index([id_plan_emergencias], map: "IDX_planos-id_plan_emergencias")
+}
+
+model preocupacional {
+  id                 Int      @id @default(autoincrement()) @db.UnsignedInt
+  id_legajo          Int      @db.UnsignedInt
+  fecha_estudio      DateTime @db.Date
+  certificado        String?  @db.VarChar(1024)
+  examen_fisico      Int      @db.UnsignedSmallInt
+  radiografia_torax  Int      @db.UnsignedSmallInt
+  electrocardiograma Int      @db.UnsignedSmallInt
+  examen_laboratorio Int      @db.UnsignedSmallInt
+  examen_psicologico Int      @db.UnsignedSmallInt
+  declaracion_jurada Int      @db.UnsignedSmallInt
+  ddjj               String?  @db.VarChar(1024)
+  legajos            legajos  @relation(fields: [id_legajo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_preocupacional-legajos")
+
+  @@index([id_legajo], map: "IDX_preocupacional-id_legajo")
+}
+
+model probabilidades {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  descripcion String?   @db.VarChar(256)
+  valor       Decimal?  @db.Decimal(10, 4)
+  riesgos     riesgos[]
+}
+
+model profesionales {
+  id                                                                 Int                  @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente                                                         Int                  @db.UnsignedInt
+  nombre                                                             String?              @db.VarChar(48)
+  apellido                                                           String?              @db.VarChar(48)
+  dni                                                                String?              @db.VarChar(8)
+  direccion                                                          String?              @db.VarChar(128)
+  telefono                                                           String?              @db.VarChar(64)
+  email                                                              String?              @db.VarChar(64)
+  titulo                                                             String?              @db.VarChar(64)
+  matricula                                                          String?              @db.VarChar(32)
+  especialidad_hys                                                   Int?                 @db.UnsignedSmallInt
+  especialidad_st                                                    Int?                 @db.UnsignedSmallInt
+  especialidad_ma                                                    Int?                 @db.UnsignedSmallInt
+  especialidad_ergo                                                  Int?                 @db.UnsignedSmallInt
+  clientes                                                           clientes             @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_profesionales-clientes")
+  detalle_mediciones                                                 detalle_mediciones[]
+  matriz_de_riesgos_matriz_de_riesgos_profesional_hysToprofesionales matriz_de_riesgos[]  @relation("matriz_de_riesgos_profesional_hysToprofesionales")
+  matriz_de_riesgos_matriz_de_riesgos_profesional_stToprofesionales  matriz_de_riesgos[]  @relation("matriz_de_riesgos_profesional_stToprofesionales")
+  rarep_profesionalesTorarep_id_profesional_hys                      rarep[]              @relation("profesionalesTorarep_id_profesional_hys")
+  rarep_profesionalesTorarep_id_profesional_st                       rarep[]              @relation("profesionalesTorarep_id_profesional_st")
+
+  @@index([id_cliente], map: "IDX_profesionales-id_cliente")
+}
+
+model proveedores {
+  id                     Int                      @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente             Int                      @db.UnsignedInt
+  razon_social           String                   @db.VarChar(64)
+  cuit                   String?                  @db.VarChar(13)
+  contacto               String?                  @db.VarChar(64)
+  telefono               String?                  @db.VarChar(64)
+  email                  String?                  @db.VarChar(128)
+  personal_a_cargo       Int?                     @db.UnsignedSmallInt
+  responsable_seguridad  String?                  @db.VarChar(64)
+  controles              controles[]
+  obras                  obras[]
+  requisitos_proveedores requisitos_proveedores[]
+}
+
+model puestos {
+  id                  Int                   @id @default(autoincrement()) @db.UnsignedInt
+  id_sector           Int                   @db.UnsignedInt
+  identificacion      String?               @db.VarChar(64)
+  descripcion         String                @db.VarChar(256)
+  incidencia          Int                   @default(1) @db.UnsignedSmallInt
+  activo              Int                   @default(1) @db.UnsignedSmallInt
+  sectores            sectores              @relation(fields: [id_sector], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_puestos-sectores")
+  detalle_matriz      detalle_matriz[]
+  detalle_rarep       detalle_rarep[]
+  ergonomia           ergonomia[]
+  puestos_actividades puestos_actividades[]
+  puestos_legajos     puestos_legajos[]
+  puestos_riesgos     puestos_riesgos[]
+
+  @@index([id_sector], map: "IDX_puestos-id_sector")
+}
+
+model puestos_actividades {
+  id           Int         @id @default(autoincrement()) @db.UnsignedInt
+  id_puesto    Int         @db.UnsignedInt
+  id_actividad Int         @db.UnsignedInt
+  actividades  actividades @relation(fields: [id_actividad], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_puestos_actividades-actividades")
+  puestos      puestos     @relation(fields: [id_puesto], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_puestos_actividades-puestos")
+
+  @@index([id_actividad], map: "IDX_puestos_actividades-id_actividad")
+  @@index([id_puesto], map: "IDX_puestos_actividades-id_puesto")
+}
+
+model puestos_legajos {
+  id         Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_puesto  Int       @db.UnsignedInt
+  id_legajo  Int       @db.UnsignedInt
+  fecha_baja DateTime? @db.Date
+  fecha_alta DateTime  @db.Date
+  legajos    legajos   @relation(fields: [id_legajo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_puestos_legajos-legajos")
+  puestos    puestos   @relation(fields: [id_puesto], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_puestos_legajos-puestos")
+
+  @@index([id_legajo], map: "IDX_puestos_legajos-id_legajo")
+  @@index([id_puesto], map: "IDX_puestos_legajos-id_puesto")
+}
+
+model puestos_riesgos {
+  id             Int     @id @default(autoincrement()) @db.UnsignedInt
+  id_puesto      Int     @db.UnsignedInt
+  id_riesgo      Int     @db.UnsignedInt
+  medida_control String? @db.VarChar(1024)
+  exposicion     String? @db.VarChar(1024)
+  condicion      String? @db.VarChar(1024)
+  puestos        puestos @relation(fields: [id_puesto], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_puestos_riesgos-puestos")
+  riesgos        riesgos @relation(fields: [id_riesgo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_puestos_riesgos-riesgos")
+
+  @@index([id_puesto], map: "IDX_puestos_riesgos-id_puesto")
+  @@index([id_riesgo], map: "IDX_puestos_riesgos-id_riesgo")
+}
+
+model puntos_de_medicion {
+  id                  Int                   @id @default(autoincrement()) @db.UnsignedInt
+  id_establecimiento  Int                   @db.UnsignedInt
+  descripcion         String                @db.VarChar(64)
+  clase               String?               @db.VarChar(3)
+  fuente              String?               @db.VarChar(3)
+  ambiente            String?               @db.VarChar(3)
+  id_sector           Int                   @db.UnsignedInt
+  establecimientos    establecimientos      @relation(fields: [id_establecimiento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_puntos-establecimientos")
+  sectores            sectores              @relation(fields: [id_sector], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_puntos-sectores")
+  valores_de_medicion valores_de_medicion[]
+
+  @@index([id_establecimiento], map: "IDX_puntos-id_establecimiento")
+  @@index([id_sector], map: "IDX_puntos-id_sector")
+}
+
+model rarep {
+  id                                                    Int             @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente                                            Int             @db.UnsignedInt
+  id_art                                                Int?            @db.UnsignedInt
+  fecha_presentacion                                    DateTime?       @db.Date
+  informe                                               String?         @db.VarChar(1024)
+  id_profesional_hys                                    Int?            @db.UnsignedInt
+  id_profesional_st                                     Int?            @db.UnsignedInt
+  proxima_presentacion                                  DateTime?       @db.Date
+  arts                                                  arts?           @relation(fields: [id_art], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_rarep-arts")
+  clientes                                              clientes        @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_rarep-clientes")
+  profesionales_profesionalesTorarep_id_profesional_hys profesionales?  @relation("profesionalesTorarep_id_profesional_hys", fields: [id_profesional_hys], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_rarep-profesionales01")
+  profesionales_profesionalesTorarep_id_profesional_st  profesionales?  @relation("profesionalesTorarep_id_profesional_st", fields: [id_profesional_st], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_rarep-profesionales02")
+  detalle_rarep                                         detalle_rarep[]
+
+  @@index([id_art], map: "IDX_rarep-id_art")
+  @@index([id_cliente], map: "IDX_rarep-id_cliente")
+  @@index([id_profesional_hys], map: "IDX_rarep-id_profesional_hys")
+  @@index([id_profesional_st], map: "IDX_rarep-id_profesional_st")
+}
+
+model reportes {
+  id           Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_usuario   Int       @db.UnsignedInt
+  titulo       String    @db.VarChar(200)
+  descripcion  String?   @db.VarChar(5000)
+  ubicacion    String?   @db.VarChar(1500)
+  coordenadas  String?   @db.VarChar(1000)
+  fecha        DateTime? @db.Date
+  hora         DateTime? @db.Time(0)
+  activo       Boolean   @default(true)
+  tipo_reporte Boolean   @default(true)
+}
+
+model reportes_app {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_usuario  Int       @db.UnsignedInt
+  titulo      String    @db.VarChar(200)
+  descripcion String?   @db.VarChar(5000)
+  ubicacion   String?   @db.VarChar(1500)
+  coordenadas String?   @db.VarChar(1000)
+  fecha       DateTime? @db.Date
+  hora        DateTime? @db.Time(0)
+}
+
+model reportes_app_archivos {
+  id         Int    @id @default(autoincrement()) @db.UnsignedInt
+  id_reporte Int    @db.UnsignedInt
+  tipo       String @db.VarChar(50)
+  archivo    String @db.VarChar(4000)
+}
+
+model reportes_archivos {
+  id         Int    @id @default(autoincrement()) @db.UnsignedInt
+  id_reporte Int    @db.UnsignedInt
+  tipo       String @db.VarChar(50)
+  archivo    String @db.VarChar(4000)
+}
+
+model requisitos {
+  id                     Int                      @id @default(autoincrement()) @db.UnsignedInt
+  denominacion           String                   @db.VarChar(64)
+  formulario             String?                  @db.VarChar(1024)
+  personal_a_cargo       Int                      @db.UnsignedSmallInt
+  detalle_obras          detalle_obras[]
+  requisitos_proveedores requisitos_proveedores[]
+}
+
+model requisitos_proveedores {
+  id           Int         @id @default(autoincrement()) @db.UnsignedInt
+  id_proveedor Int         @db.UnsignedInt
+  id_requisito Int         @db.UnsignedInt
+  proveedores  proveedores @relation(fields: [id_proveedor], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_requisitos-proveedores")
+  requisitos   requisitos  @relation(fields: [id_requisito], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_requistos-requisitos")
+
+  @@index([id_proveedor], map: "IDX_requisitos-id_proveedor")
+  @@index([id_requisito], map: "IDX_requisitos-id_requisito")
+}
+
+model riesgos {
+  id                     Int                     @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente             Int                     @db.UnsignedInt
+  id_factor              Int                     @db.UnsignedInt
+  riesgo                 String                  @db.VarChar(48)
+  id_exposicion          Int?                    @db.UnsignedInt
+  id_probabilidad        Int?                    @db.UnsignedInt
+  id_consecuencia        Int?                    @db.UnsignedInt
+  id_agente              Int?                    @db.UnsignedInt
+  id_esop                Int?                    @db.UnsignedInt
+  id_trabajador_expuesto Int?                    @db.UnsignedInt
+  owner                  Int?                    @db.UnsignedInt
+  agentes                agentes?                @relation(fields: [id_agente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_riesgos-agentes")
+  clientes               clientes                @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_riesgos-clientes")
+  consecuencias          consecuencias?          @relation(fields: [id_consecuencia], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_riesgos-consecuencias")
+  exposicion             exposicion?             @relation(fields: [id_exposicion], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_riesgos-exposicion")
+  factores               factores                @relation(fields: [id_factor], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_riesgos-factores")
+  probabilidades         probabilidades?         @relation(fields: [id_probabilidad], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_riesgos-probabilidades")
+  trabajadores_expuestos trabajadores_expuestos? @relation(fields: [id_trabajador_expuesto], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_riesgos-id_trabajadores_expuestos")
+  puestos_riesgos        puestos_riesgos[]
+  riesgos_actividades    riesgos_actividades[]
+  riesgos_cursos         riesgos_cursos[]
+  riesgos_elementos      riesgos_elementos[]
+  riesgos_mediciones     riesgos_mediciones[]
+  riesgos_rarep          riesgos_rarep[]
+
+  @@index([id_agente], map: "IDX_riesgos-id_agente")
+  @@index([id_cliente], map: "IDX_riesgos-id_cliente")
+  @@index([id_consecuencia], map: "IDX_riesgos-id_consecuencia")
+  @@index([id_exposicion], map: "IDX_riesgos-id_exposicion")
+  @@index([id_factor], map: "IDX_riesgos-id_factor")
+  @@index([id_probabilidad], map: "IDX_riesgos-id_probabilidad")
+  @@index([id_trabajador_expuesto], map: "IDX_riesgos-id_trabajador_expuesto")
+}
+
+model riesgos_actividades {
+  id             Int         @id @default(autoincrement()) @db.UnsignedInt
+  id_riesgo      Int         @db.UnsignedInt
+  id_actividad   Int         @db.UnsignedInt
+  medida_control String?     @db.VarChar(1024)
+  exposicion     String?     @db.VarChar(1024)
+  condicion      String?     @db.VarChar(1024)
+  actividades    actividades @relation(fields: [id_actividad], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_riesgos_actividades-id_actividad")
+  riesgos        riesgos     @relation(fields: [id_riesgo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_riesgos_actividades-id_riesgo")
+
+  @@index([id_actividad], map: "IDX_riesgos_actividades-id_actividad")
+  @@index([id_riesgo], map: "IDX_riesgos_actividades-id_riesgo")
+}
+
+model riesgos_cursos {
+  id        Int     @id @default(autoincrement()) @db.UnsignedInt
+  id_riesgo Int     @db.UnsignedInt
+  id_curso  Int     @db.UnsignedInt
+  cursos    cursos  @relation(fields: [id_curso], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_riesgos_cursos-cursos")
+  riesgos   riesgos @relation(fields: [id_riesgo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_riesgos_cursos-riesgos")
+
+  @@index([id_curso], map: "IDX_riesgos_cursos-id_curso")
+  @@index([id_riesgo], map: "IDX_riesgos_cursos-id_riesgo")
+}
+
+model riesgos_elementos {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  id_riesgo   Int       @db.UnsignedInt
+  id_elemento Int       @db.UnsignedInt
+  elementos   elementos @relation(fields: [id_elemento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_riesgos_elementos-elementos")
+  riesgos     riesgos   @relation(fields: [id_riesgo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_riesgos_elementos-riesgos")
+
+  @@index([id_elemento], map: "IDX_riesgos_elementos-id_elemento")
+  @@index([id_riesgo], map: "IDX_riesgos_elementos-id_riesgo")
+}
+
+model riesgos_mediciones {
+  id          Int        @id @default(autoincrement()) @db.UnsignedInt
+  id_riesgo   Int        @db.UnsignedInt
+  id_medicion Int        @db.UnsignedInt
+  mediciones  mediciones @relation(fields: [id_medicion], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_riesgos_mediciones-id_medicion")
+  riesgos     riesgos    @relation(fields: [id_riesgo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_riesgos_mediciones-id_riesgo")
+
+  @@index([id_medicion], map: "IDX_riesgos_mediciones-id_medicion")
+  @@index([id_riesgo], map: "IDX_riesgos_mediciones-id_riesgo")
+}
+
+model riesgos_rarep {
+  id               Int           @id @default(autoincrement()) @db.UnsignedInt
+  id_detalle_rarep Int           @db.UnsignedInt
+  id_riesgo        Int           @db.UnsignedInt
+  detalle_rarep    detalle_rarep @relation(fields: [id_detalle_rarep], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_riesgos_rarep-detalle_rarep")
+  riesgos          riesgos       @relation(fields: [id_riesgo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_riesgos_rarep-riesgos")
+
+  @@index([id_detalle_rarep], map: "FK_riesgos_rarep-detalle_rarep")
+  @@index([id_riesgo], map: "FK_riesgos_rarep-riesgos")
+}
+
+model roles {
+  id          Int        @id @default(autoincrement()) @db.UnsignedInt
+  descripcion String     @db.VarChar(64)
+  permisos    permisos[]
+  usuarios    usuarios[]
+}
+
+model roles_plan_emergencia {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  descripcion String    @db.VarChar(64)
+  jerarquia   Int       @db.UnsignedSmallInt
+  legajos     legajos[]
+}
+
+model sectores {
+  id                 Int                  @id @default(autoincrement()) @db.UnsignedInt
+  id_establecimiento Int                  @db.UnsignedInt
+  descripcion        String               @db.VarChar(64)
+  establecimientos   establecimientos     @relation(fields: [id_establecimiento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_sectores-establecimientos")
+  detalle_rarep      detalle_rarep[]
+  puestos            puestos[]
+  puntos_de_medicion puntos_de_medicion[]
+
+  @@index([id_establecimiento], map: "IDX_sectores-id_establecimiento")
+}
+
+model sesiones {
+  id         Int      @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente Int      @db.UnsignedInt
+  id_usuario Int      @db.UnsignedInt
+  login_date DateTime @default(now()) @db.Timestamp(0)
+  ip_address String   @db.VarChar(20)
+  clientes   clientes @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_sesiones-clientes")
+  usuarios   usuarios @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_sesiones-usuarios")
+
+  @@index([id_cliente], map: "IDX_sesiones-id_cliente")
+  @@index([id_usuario], map: "IDX_sesiones-id_usuario")
+}
+
+model session {
+  id            String    @id @unique(map: "id") @db.VarChar(128)
+  payload       String    @db.Text
+  last_activity Int
+  id_usuario    Int
+  login_date    DateTime? @db.Timestamp(0)
+}
+
+model session_app {
+  id            String    @id @unique(map: "id") @db.VarChar(128)
+  payload       String    @db.Text
+  last_activity Int
+  id_usuario    Int
+  login_date    DateTime? @db.Timestamp(0)
+}
+
+model simulacros {
+  id                  Int              @id @default(autoincrement()) @db.UnsignedInt
+  id_plan_emergencias Int              @db.UnsignedInt
+  numero              String           @db.VarChar(7)
+  fecha_programada    DateTime         @db.Date
+  hora_programada     DateTime         @db.Time(0)
+  informe             String?          @db.VarChar(1024)
+  fecha_simulacro     DateTime?        @db.Date
+  hora_simulacro      DateTime?        @db.Time(0)
+  created_at          DateTime         @default(now()) @db.Timestamp(0)
+  plan_emergencias    plan_emergencias @relation(fields: [id_plan_emergencias], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_simulacros-plan_emergencias")
+
+  @@index([id_plan_emergencias], map: "IDX_simulacros-id_plan_emergencias")
+}
+
+model tipos_de_accidentes {
+  id          Int          @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente  Int          @db.UnsignedInt
+  descripcion String       @db.VarChar(64)
+  clientes    clientes     @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_tipos_de_accidentes-clientes")
+  accidentes  accidentes[]
+
+  @@index([id_cliente], map: "IDX_tipos_de_accidentes-clientes")
+}
+
+model tipos_de_controles {
+  id           Int         @id @default(autoincrement()) @db.UnsignedInt
+  denominacion String      @db.VarChar(64)
+  frecuencia   Int         @db.SmallInt
+  normativa    String?     @db.VarChar(128)
+  controles    controles[]
+}
+
+model tipos_de_medicion {
+  id                  Int                   @id @default(autoincrement()) @db.UnsignedInt
+  materia             String                @db.Char(1)
+  descripcion         String                @db.VarChar(128)
+  equipos_de_medicion equipos_de_medicion[]
+  mediciones          mediciones[]
+}
+
+model trabajadores_expuestos {
+  id           Int       @id @default(autoincrement()) @db.UnsignedInt
+  cota_inicial Int       @db.UnsignedInt
+  cota_final   Int       @db.UnsignedInt
+  valor        Decimal   @db.Decimal(10, 4)
+  riesgos      riesgos[]
+}
+
+model turnos {
+  id           Int          @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente   Int          @db.UnsignedInt
+  descripcion  String       @db.VarChar(32)
+  hora_inicial DateTime?    @db.Time(0)
+  hora_final   DateTime?    @db.Time(0)
+  clientes     clientes     @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_turnos-clientes")
+  accidentes   accidentes[]
+
+  @@index([id_cliente], map: "IDX_turnos-clientes")
+}
+
+model ubicaciones {
+  id                 Int              @id @default(autoincrement()) @db.UnsignedInt
+  id_establecimiento Int              @db.UnsignedInt
+  descripcion        String?          @db.VarChar(256)
+  piso               String?          @db.VarChar(24)
+  posicion           Int              @db.SmallInt
+  establecimientos   establecimientos @relation(fields: [id_establecimiento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ubicaciones-establecimientos")
+  extintores         extintores[]
+  hidrantes          hidrantes[]
+
+  @@index([id_establecimiento], map: "IDX_ubicaciones-id_establecimiento")
+}
+
+model usuarios {
+  id               Int           @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente       Int           @db.UnsignedInt
+  id_rol           Int           @db.UnsignedInt
+  activo           Int           @db.UnsignedSmallInt
+  nombre           String        @db.VarChar(64)
+  nombre_usuario   String        @db.VarChar(48)
+  password_usuario String        @db.VarChar(255)
+  email            String        @db.VarChar(64)
+  logueado         Int           @db.UnsignedSmallInt
+  vida_util        Int           @db.UnsignedSmallInt
+  ultimo_cambio    DateTime      @db.DateTime(0)
+  cambio_obligado  Int           @db.SmallInt
+  ultimo_login     DateTime      @db.DateTime(0)
+  desconexion      Int           @db.UnsignedSmallInt
+  google_email     String        @db.VarChar(256)
+  plataforma       String        @default("W") @db.Char(1)
+  web_session_id   String?       @db.VarChar(1024)
+  telefono         String?       @db.VarChar(64)
+  clientes         clientes      @relation(fields: [id_cliente], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_usuarios-clientes")
+  roles            roles         @relation(fields: [id_rol], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_usuarios-roles")
+  autorizados      autorizados[]
+  indicadores      indicadores[]
+  sesiones         sesiones[]
+
+  @@index([id_cliente], map: "IDX_usuarios-id_cliente")
+  @@index([id_rol], map: "IDX_usuarios-roles")
+}
+
+model usuarios_app {
+  id               Int      @id @default(autoincrement()) @db.UnsignedInt
+  id_cliente       Int      @db.UnsignedInt
+  nombre_usuario   String   @db.VarChar(48)
+  password_usuario String   @db.VarChar(255)
+  nombre           String   @db.VarChar(300)
+  email            String   @db.VarChar(200)
+  telefono         String   @db.VarChar(100)
+  activo           Int      @db.UnsignedSmallInt
+  dispositivo      String   @db.VarChar(50)
+  alta             DateTime @default(now()) @db.Timestamp(0)
+}
+
+model valores_de_medicion {
+  id                   Int                @id @default(autoincrement()) @db.UnsignedInt
+  id_punto_de_medicion Int                @db.UnsignedInt
+  id_detalle_medicion  Int                @db.UnsignedInt
+  hora                 DateTime           @db.Time(0)
+  minutos              DateTime           @db.Time(0)
+  valor_medido         Decimal            @db.Decimal(10, 4)
+  detalle_mediciones   detalle_mediciones @relation(fields: [id_detalle_medicion], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_valores-id_detalle_mediciones")
+  puntos_de_medicion   puntos_de_medicion @relation(fields: [id_punto_de_medicion], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_valores-puntos_de_medicion")
+
+  @@index([id_detalle_medicion], map: "IDX_valores-id_detalle_mediciones")
+  @@index([id_punto_de_medicion], map: "IDX_valores-id_puntos_de_medicion")
+}
+
+model ventilacion {
+  id                  Int     @id @default(autoincrement()) @db.UnsignedInt
+  ventilacion_tipo    String  @default("Natural") @db.Char(8)
+  carga_tope_inferior Decimal @db.Decimal(10, 4)
+  carga_tope_superior Decimal @db.Decimal(10, 4)
+  riesgo_actividad    Int     @db.UnsignedSmallInt
+  valor               String  @db.Char(4)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model versiones {
+  web             String   @db.Char(8)
+  web_release     DateTime @db.Date
+  app_ios         String   @db.Char(8)
+  ios_release     DateTime @db.Date
+  app_android     String   @db.Char(8)
+  android_release DateTime @db.Date
+
+  @@ignore
+}

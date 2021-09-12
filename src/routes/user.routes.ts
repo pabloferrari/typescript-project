@@ -12,7 +12,7 @@ export class UserRoutes extends Routes {
 	 * @memberof UserRoutes
 	 */
 	public routes(): void {
-        this.router.get(`${this.path}/`, HomeController.index);
+        // this.router.get(`${this.path}/`, HomeController.index);
 		// this.router.get(`${this.path}/`, PaymentController.getPayments);
 		// this.router.get(`${this.path}/create`, PaymentController.createPayment);
 		

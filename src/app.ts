@@ -5,6 +5,7 @@ import { IAppInit, IAppRoutes } from './config/app.interface';
 import { AppConfig } from './config/app.config';
 import { logger } from './lib/logger';
 import database from './config/database';
+import { jwtValidate } from './middlewares/jwt.middleware';
 
 export default class App {
 	private app: Application;
@@ -27,13 +28,13 @@ export default class App {
 
 	
 	/**
-     * MIDDLEWARES
-     *
-     * @private
-     * @param {{ forEach: (arg0: (middleWare: any) => void) => void }} middleWares
-     * @memberof App
-     */
-    private middlewares(middleWares: { forEach: (arg0: (middleWare: any) => void) => void }): void {
+   * MIDDLEWARES
+   *
+   * @private
+   * @param {{ forEach: (arg0: (middleWare: any) => void) => void }} middleWares
+   * @memberof App
+   */
+  private middlewares(middleWares: { forEach: (arg0: (middleWare: any) => void) => void }): void {
 		middleWares.forEach(middleWare => {
 			this.app.use(middleWare);
 		});
@@ -41,34 +42,38 @@ export default class App {
 
 	
 	/**
-     * ROUTES
-     *
-     * @private
-     * @param {IAppRoutes[]} appRoutes
-     * @return {*}  {Promise<void>}
-     * @memberof App
-     */
-    private async routes(appRoutes: IAppRoutes[]): Promise<void> {
-        appRoutes.forEach(routes => {
-            routes.routes.forEach(route => {
-                this.app.use(`/`, route.router);
-            });
+   * ROUTES
+   *
+   * @private
+   * @param {IAppRoutes[]} appRoutes
+   * @return {*}  {Promise<void>}
+   * @memberof App
+   */
+  private async routes(appRoutes: IAppRoutes[]): Promise<void> {
+      appRoutes.forEach(routes => {
+        routes.routes.forEach(route => {
+          if(routes.auth) {
+            this.app.use(`/`, jwtValidate, route.router);
+          } else {
+            this.app.use(`/`, route.router);
+          }
         });
+      });
 
-		this.app.all('*', (req: Request, res: Response) => {
-			res.status(404).json({ message: 'Route not Found' });
-		});
-	}
+      this.app.all('*', (req: Request, res: Response) => {
+        res.status(404).json({ message: 'Route not Found' });
+      });
+  }
 
     
-    /**
-     * START APP
-     *
-     * @memberof App
-     */
-    public listen(): void {
-		this.app.listen(this.port, () => {
-			console.log(`App listening on port: ${this.port}`);
-		});
-	}
+  /**
+   * START APP
+   *
+   * @memberof App
+   */
+  public listen(): void {
+    this.app.listen(this.port, () => {
+      console.log(`App listening on port: ${this.port}`);
+    });
+  }
 }

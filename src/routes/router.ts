@@ -2,7 +2,7 @@ import { IAppRoutes } from '../config/app.interface';
 
 import { AuthRoutes } from './auth.routes';
 import { AppRoutes } from './app.routes';
-import { jwtValidate } from '../middlewares/jwt.middleware';
+// import { jwtValidate } from '../middlewares/jwt.middleware';
 
 export const AppRouter: IAppRoutes[] = [
 	{
