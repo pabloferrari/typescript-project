@@ -78,3 +78,8 @@ TSError: ⨯ Unable to compile TypeScript:
 2021-09-12 18:57:25 [37lvv4p4kthrcvis] local.info: Token -> 
 2021-09-12 18:57:26 [37lvv4p4kthrcwgf] local.info: Token -> 
 2021-09-12 19:01:39 [-] local.info: Application local is run on port 3000
+2021-09-12 19:16:54 [-] local.info: Application local is run on port 3000
+2021-09-12 19:21:50 [-] local.info: Application local is run on port 3000
+2021-09-12 19:21:59 [37lvv4wykths8h39] local.info: Token -> 
+2021-09-12 19:23:08 [-] local.info: Application local is run on port 3000
+2021-09-12 19:23:30 [37lvv4xikthsafnd] local.info: Token -> eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJwYWJsby5mZXJyYXJpQG1lLmNvbSIsImlhdCI6MTYzMTQ4NTM5NCwiZXhwIjoxNjMxNDg2Mzk0fQ.OEQS9ASCCxIpzSw6yppS1IdAlb2fDHqETsEvuCfpeek
