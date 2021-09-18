@@ -28,7 +28,7 @@ const jwtValidate = async (req: Request, res: Response, next: NextFunction): Pro
         const jwtPayload = jwt.verify(token, JWT_SECRET) as any;
         next();
 
-    } catch (error) {
+    } catch (error: any) {
         
         if (error.name === 'TokenExpiredError') {
             res.status(401).json({ error: 'token expired' });
