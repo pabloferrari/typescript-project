@@ -1,5 +1,6 @@
 import { Routes } from '../config/router.config';
 import { AuthController } from '../controllers/AuthController';
+import { loginRequest } from '../middlewares/requests/auth.middleware';
 
 
 export class AuthRoutes extends Routes {
@@ -14,7 +15,7 @@ export class AuthRoutes extends Routes {
 	 */
 	public routes(): void {
         this.router.get(`${this.path}/`, AuthController.validate);
-        this.router.post(`${this.path}`, AuthController.login)
+        this.router.post(`${this.path}`, loginRequest, AuthController.login)
 		
     }
 }
