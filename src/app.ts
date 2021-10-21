@@ -4,7 +4,12 @@ import { Application } from 'express';
 import { IAppInit, IAppRoutes } from './config/app.interface';
 import { AppConfig } from './config/app.config';
 import { logger } from './lib/logger';
+
+// if mysql
 import database from './config/database';
+// if mongodb
+// import database from './config/database.mongo';
+
 import { jwtValidate } from './middlewares/jwt.middleware';
 
 export default class App {
